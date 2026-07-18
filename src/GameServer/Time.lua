@@ -17,6 +17,17 @@ Time.PLAYER_MAX_AGE = 75            -- tope duro del jugador
 Time.NPC_MIN_LIFESPAN = 75         -- el NPC vive al menos esto...
 Time.NPC_MAX_LIFESPAN = 100        -- ...y a lo mucho esto (con azar)
 
+-- === Embarazo ===
+-- Dura entre 1 y 2 dias-mundo (promedio ~1.5 dias = ~30 min de juego).
+-- Como todo, con variacion individual: unos embarazos mas cortos, otros mas largos.
+Time.PREGNANCY_MIN = 1 * Time.SECONDS_PER_DAY   -- 1 dia-mundo
+Time.PREGNANCY_MAX = 2 * Time.SECONDS_PER_DAY   -- 2 dias-mundo
+
+-- Genera una duracion de embarazo al azar, en segundos-mundo.
+function Time.rollPregnancyDuration()
+	return math.random(Time.PREGNANCY_MIN, Time.PREGNANCY_MAX)
+end
+
 -- Convierte anios a segundos-mundo.
 function Time.yearsToSeconds(years)
 	return years * Time.SECONDS_PER_YEAR

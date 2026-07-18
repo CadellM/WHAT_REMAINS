@@ -12,6 +12,7 @@ local ProductionService = require(script.Parent.ProductionService)
 local SupplyService = require(script.Parent.SupplyService)
 local Time = require(script.Parent.Time)
 local MortalityService = require(script.Parent.MortalityService)
+local PerceptionService = require(script.Parent.PerceptionService)
 
 local FIXED_DT = 1.0
 
@@ -19,7 +20,7 @@ local FIXED_DT = 1.0
 -- Cuantos segundos-mundo pasan por cada segundo real.
 -- ALTA (600) = pruebas rapidas, ves NPCs morir en minutos.
 -- Ponla en 1 para el ritmo real del juego. NO cambia ninguna proporcion.
-local TIME_SCALE = 3000
+local TIME_SCALE = 600
 
 local worldTime = 0
 
@@ -103,5 +104,18 @@ RunService.Heartbeat:Connect(function(realDelta)
 			worldTime, Time.getDay(worldTime),
 			Time.isDaytime(worldTime) and "dia" or "noche",
 			EntityStore.count()))
+
+		-- PRUEBA de percepcion: reporta si algun NPC ve a otro cerca.
+		for _, entity in pairs(EntityStore.getAll()) do
+			local nearby = PerceptionService.getNearby(entity)
+			if #nearby > 0 then
+				local names = {}
+				for _, other in ipairs(nearby) do
+					table.insert(names, other.Id)
+				end
+				print(string.format("[PERCEPCION] %s ve cerca a: %s",
+					entity.Id, table.concat(names, ", ")))
+			end
+		end
 	end
 end)
