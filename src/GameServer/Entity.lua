@@ -19,6 +19,9 @@ function Entity.new(id)
 		Lifespan = Time.rollNpcLifespan(),
 		HoursLived = 0,
 		Needs = { Hunger = 30 },
+		-- Vitalidad: que tan vivo estas. Baja por hambre extrema (y luego ataques, veneno...).
+		-- Si llega a 0, muere. Es el punto unico de dano del que penden todas las amenazas.
+		Vitality = 100,
 		Position = { x = 0, y = 0 },
 		CurrentAction = nil,
 		WaitUntil = 0,

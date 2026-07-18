@@ -13,6 +13,8 @@ local SupplyService = require(script.Parent.SupplyService)
 local Time = require(script.Parent.Time)
 local MortalityService = require(script.Parent.MortalityService)
 local PerceptionService = require(script.Parent.PerceptionService)
+local MatingService = require(script.Parent.MatingService)
+local VitalityService = require(script.Parent.VitalityService)
 
 local FIXED_DT = 1.0
 
@@ -36,22 +38,33 @@ local function step(dt)
 			-- Envejecer por el reloj de anio.
 			entity.Age = entity.Age + dt / Time.SECONDS_PER_YEAR
 
-			-- Revisar si murio de viejo. Si si, sacarlo y no seguir procesandolo.
+			-- 1. Muerte por vejez.
 			if MortalityService.check(entity) then
 				EntityStore.remove(entity.Id)
 			else
+				-- 2. Las necesidades crecen.
 				NeedService.update(entity, dt)
-				ActionService.tick(entity, dt, worldTime)
-				if entity.CurrentAction == nil then
-					local action = DecisionService.decide(entity, worldTime)
-					if action then
-						entity.CurrentAction = action
-						if action.Type == "TravelToEat" then
-							print(string.format("[DECISION] %s decide viajar a %s (%.0f de distancia).",
-								entity.Id, action.TargetPlace, action.Distance))
-						elseif action.Type == "Wander" then
-							print(string.format("[DECISION] %s decide vagar hacia (%.0f,%.0f).",
-								entity.Id, action.Destination.x, action.Destination.y))
+
+				-- 3. La vitalidad reacciona al hambre. Si se agota, muere de hambre.
+				if VitalityService.update(entity, dt) then
+					EntityStore.remove(entity.Id)
+				else
+					-- 4. Vive: puede emparejarse y actuar.
+					MatingService.update(entity, dt)
+					ActionService.tick(entity, dt, worldTime)
+
+					-- 5. Si quedo libre, que decida algo nuevo.
+					if entity.CurrentAction == nil then
+						local action = DecisionService.decide(entity, worldTime)
+						if action then
+							entity.CurrentAction = action
+							if action.Type == "TravelToEat" then
+								print(string.format("[DECISION] %s decide viajar a %s (%.0f de distancia).",
+									entity.Id, action.TargetPlace, action.Distance))
+							elseif action.Type == "Wander" then
+								print(string.format("[DECISION] %s decide vagar hacia (%.0f,%.0f).",
+									entity.Id, action.Destination.x, action.Destination.y))
+							end
 						end
 					end
 				end
