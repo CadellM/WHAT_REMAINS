@@ -16,11 +16,13 @@ local nextNumber = 1
 
 -- Crea una entidad nueva, la guarda en el store, y la devuelve.
 function EntityStore.create()
-	-- Arma un Id con ceros a la izquierda: entity_001, entity_002...
 	local id = string.format("entity_%03d", nextNumber)
 	nextNumber = nextNumber + 1
 
 	local newEntity = Entity.new(id)
+	-- Edad inicial variada: la poblacion arranca con gente de distintas edades,
+	-- no todos adolescentes el mismo dia (si no, morririan casi juntos).
+	newEntity.Age = math.random(16, 50)
 	entities[id] = newEntity
 	return newEntity
 end

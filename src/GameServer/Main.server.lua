@@ -59,12 +59,15 @@ local function step(dt)
 	end
 end
 
--- === Arranque ===
-local first = EntityStore.create()
-print(string.format("[NACIMIENTO] %s existe. Controller=%s Edad=%.2f Esperanza=%d anios Hambre=%.0f",
-	first.Id, first.Controller, first.Age, first.Lifespan, first.Needs.Hunger))
-print(string.format("[MUNDO] Escala: 1 anio = %d seg-mundo, 1 dia = %d seg-mundo. Perilla: x%d.",
-	Time.SECONDS_PER_YEAR, Time.SECONDS_PER_DAY, TIME_SCALE))
+-- === Arranque: poblacion inicial ===
+local STARTING_POPULATION = 4
+for i = 1, STARTING_POPULATION do
+	local npc = EntityStore.create()
+	print(string.format("[NACIMIENTO] %s existe. Sexo=%s Edad=%.1f Esperanza=%d anios",
+		npc.Id, npc.Sex, npc.Age, npc.Lifespan))
+end
+print(string.format("[MUNDO] Poblacion inicial: %d NPCs. Escala: 1 anio=%d seg. Perilla: x%d.",
+	EntityStore.count(), Time.SECONDS_PER_YEAR, TIME_SCALE))
 
 -- === El reloj vivo ===
 local accumulator = 0
@@ -96,14 +99,9 @@ RunService.Heartbeat:Connect(function(realDelta)
 	logTimer = logTimer + realDelta
 	if logTimer >= 1 then
 		logTimer = logTimer - 1
-		if EntityStore.get(first.Id) then
-			print(string.format("[TICK] mundo=%.0f (dia %d, %s) | %s Edad=%.1f Hambre=%.0f",
-				worldTime, Time.getDay(worldTime),
-				Time.isDaytime(worldTime) and "dia" or "noche",
-				first.Id, first.Age, first.Needs.Hunger))
-		else
-			print(string.format("[TICK] mundo=%.0f (dia %d) | %s ya murio.",
-				worldTime, Time.getDay(worldTime), first.Id))
-		end
+		print(string.format("[TICK] mundo=%.0f (dia %d, %s) | Poblacion: %d NPCs",
+			worldTime, Time.getDay(worldTime),
+			Time.isDaytime(worldTime) and "dia" or "noche",
+			EntityStore.count()))
 	end
 end)

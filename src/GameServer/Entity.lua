@@ -14,9 +14,9 @@ function Entity.new(id)
 	return {
 		Id = id,
 		Controller = "AI",
+		-- Genero al azar: mismo molde, valor distinto. La variacion vive en el dato.
+		Sex = (math.random() < 0.5) and "M" or "F",
 		Age = 15,
-		-- Esperanza de vida individual (en anios), con azar: unos viven mas que otros.
-		-- Esto es lo que hace que los NPC mueran repartidos, no todos a la vez.
 		Lifespan = Time.rollNpcLifespan(),
 		HoursLived = 0,
 		Needs = { Hunger = 30 },
