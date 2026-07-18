@@ -44,4 +44,9 @@ function EntityStore.count()
 	return total
 end
 
+-- Elimina una entidad del store (cuando muere).
+function EntityStore.remove(id)
+	entities[id] = nil
+end
+
 return EntityStore
