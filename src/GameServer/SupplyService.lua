@@ -1,49 +1,74 @@
 -- SupplyService.lua
--- Mueve recursos entre lugares con un TIEMPO DE ENTREGA.
--- No hay repartidor fisico: es una transferencia con retardo.
--- El molino "despacha" harina; llega a la panaderia unos segundos-mundo despues.
+-- Mueve recursos entre lugares con TIEMPO DE ENTREGA (sin repartidor fisico).
+-- Dos rutas ahora:
+--   Cosecha -> Molino (maiz)
+--   Molino  -> Panaderia (harina)
 
 local World = require(script.Parent.World)
 
 local SupplyService = {}
 
--- Cada cuanto el molino despacha harina hacia la panaderia.
-local DISPATCH_INTERVAL = 200
--- Cuanto tarda un envio en llegar (el "en transito").
-local DELIVERY_TIME = 150
--- Cuanta harina manda por envio.
-local DISPATCH_AMOUNT = 2
+-- Ruta harina: Molino -> Panaderia
+local FLOUR_DISPATCH_INTERVAL = 200
+local FLOUR_DELIVERY_TIME = 150
+local FLOUR_DISPATCH_AMOUNT = 2
 
--- Lista de envios que van "en camino" (cada uno con su tiempo restante).
+-- Ruta maiz: Cosecha -> Molino
+local CORN_DISPATCH_INTERVAL = 170
+local CORN_DELIVERY_TIME = 120
+local CORN_DISPATCH_AMOUNT = 2
+
+-- Envios en transito.
 local shipments = {}
 
 function SupplyService.update(dt)
+	local farm = World.places.Farm
 	local mill = World.places.Mill
 	local bakery = World.places.Bakery
 
-	-- 1. El molino acumula tiempo y despacha harina cada intervalo.
-	mill.DispatchTimer = (mill.DispatchTimer or 0) + dt
-	while mill.DispatchTimer >= DISPATCH_INTERVAL do
-		mill.DispatchTimer = mill.DispatchTimer - DISPATCH_INTERVAL
-		if mill.Flour >= DISPATCH_AMOUNT then
-			mill.Flour = mill.Flour - DISPATCH_AMOUNT
+	-- 1. Cosecha despacha maiz hacia el molino.
+	farm.DispatchTimer = (farm.DispatchTimer or 0) + dt
+	while farm.DispatchTimer >= CORN_DISPATCH_INTERVAL do
+		farm.DispatchTimer = farm.DispatchTimer - CORN_DISPATCH_INTERVAL
+		if farm.Corn >= CORN_DISPATCH_AMOUNT then
+			farm.Corn = farm.Corn - CORN_DISPATCH_AMOUNT
 			table.insert(shipments, {
-				amount = DISPATCH_AMOUNT,
-				remaining = DELIVERY_TIME,  -- tiempo que le falta para llegar
+				resource = "Corn",
+				target = "Mill",
+				amount = CORN_DISPATCH_AMOUNT,
+				remaining = CORN_DELIVERY_TIME,
 			})
-			print(string.format("[ENVIO] Molino despacho %d harina. Llega en %d seg. (Molino restante: %d)",
-				DISPATCH_AMOUNT, DELIVERY_TIME, mill.Flour))
+			print(string.format("[ENVIO] Cosecha despacho %d maiz al molino. Llega en %d seg. (Cosecha: %d)",
+				CORN_DISPATCH_AMOUNT, CORN_DELIVERY_TIME, farm.Corn))
 		end
 	end
 
-	-- 2. Avanza los envios en transito. Los que llegan, entregan su harina.
-	for i = #shipments, 1, -1 do  -- de atras hacia adelante para poder remover
+	-- 2. Molino despacha harina hacia la panaderia.
+	mill.DispatchTimer = (mill.DispatchTimer or 0) + dt
+	while mill.DispatchTimer >= FLOUR_DISPATCH_INTERVAL do
+		mill.DispatchTimer = mill.DispatchTimer - FLOUR_DISPATCH_INTERVAL
+		if mill.Flour >= FLOUR_DISPATCH_AMOUNT then
+			mill.Flour = mill.Flour - FLOUR_DISPATCH_AMOUNT
+			table.insert(shipments, {
+				resource = "Flour",
+				target = "Bakery",
+				amount = FLOUR_DISPATCH_AMOUNT,
+				remaining = FLOUR_DELIVERY_TIME,
+			})
+			print(string.format("[ENVIO] Molino despacho %d harina a la panaderia. Llega en %d seg. (Molino: %d)",
+				FLOUR_DISPATCH_AMOUNT, FLOUR_DELIVERY_TIME, mill.Flour))
+		end
+	end
+
+	-- 3. Avanza los envios en transito y entrega los que llegan.
+	for i = #shipments, 1, -1 do
 		local ship = shipments[i]
 		ship.remaining = ship.remaining - dt
 		if ship.remaining <= 0 then
-			bakery.Flour = bakery.Flour + ship.amount
-			print(string.format("[ENTREGA] Llegaron %d harina a la panaderia. (Panaderia harina: %d)",
-				ship.amount, bakery.Flour))
+			local place = World.places[ship.target]
+			place[ship.resource] = (place[ship.resource] or 0) + ship.amount
+			print(string.format("[ENTREGA] Llegaron %d %s a %s. (Total ahi: %d)",
+				ship.amount, ship.resource, ship.target, place[ship.resource]))
 			table.remove(shipments, i)
 		end
 	end

@@ -9,13 +9,20 @@ World.places = {
 		Id = "Bakery",
 		Position = { x = 50, y = 0 },
 		Bread = 3,
-		Flour = 2,          -- harina disponible para hornear (se consume!)
+		Flour = 2,
 	},
 
 	Mill = {
 		Id = "Mill",
 		Position = { x = -60, y = 20 },
-		Flour = 0,          -- harina lista para despachar
+		Flour = 0,
+		Corn = 2,           -- maiz disponible para moler (se consume!)
+	},
+
+	Farm = {
+		Id = "Farm",
+		Position = { x = -30, y = -70 },
+		Corn = 0,           -- maiz listo para despachar al molino
 	},
 }
 
