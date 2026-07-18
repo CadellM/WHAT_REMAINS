@@ -7,8 +7,15 @@ local World = {}
 World.places = {
 	Bakery = {
 		Id = "Bakery",
-		Position = { x = 50, y = 0 },  -- lejos del origen: hay que viajar
-		Bread = 3,                     -- stock inicial de pan (se agota!)
+		Position = { x = 50, y = 0 },
+		Bread = 3,
+		Flour = 2,          -- harina disponible para hornear (se consume!)
+	},
+
+	Mill = {
+		Id = "Mill",
+		Position = { x = -60, y = 20 },
+		Flour = 0,          -- harina lista para despachar
 	},
 }
 

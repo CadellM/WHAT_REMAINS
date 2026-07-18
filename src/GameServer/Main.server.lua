@@ -8,6 +8,7 @@ local DecisionService = require(script.Parent.DecisionService)
 local ActionService = require(script.Parent.ActionService)
 local World = require(script.Parent.World)
 local ProductionService = require(script.Parent.ProductionService)
+local SupplyService = require(script.Parent.SupplyService)
 
 local FIXED_DT = 1.0
 local TIME_SCALE = 60
@@ -18,8 +19,10 @@ local worldTime = 0
 local function step(dt)
 	worldTime = worldTime + dt
 
-	-- El mundo produce (panaderia hornea pan, etc.) antes de que actuen los NPC.
+	-- El mundo produce (panaderia hornea pan, molino muele harina).
 	ProductionService.update(dt)
+	-- Los envios en transito avanzan (harina del molino a la panaderia).
+	SupplyService.update(dt)
 
 	for _, entity in pairs(EntityStore.getAll()) do
 		if entity.Controller == "AI" then
